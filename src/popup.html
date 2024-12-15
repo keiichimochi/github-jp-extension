@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    body {
+      width: 300px;
+      padding: 10px;
+    }
+    button {
+      width: 100%;
+      padding: 8px;
+      margin-top: 10px;
+    }
+    .api-key-section {
+      margin-top: 15px;
+      padding: 10px;
+      background-color: #f6f8fa;
+      border-radius: 6px;
+    }
+    input {
+      width: 100%;
+      padding: 5px;
+      margin-top: 5px;
+    }
+    .error {
+      color: red;
+      font-size: 12px;
+      margin-top: 5px;
+      display: none;
+    }
+    .hidden {
+      display: none;
+    }
+    .notice {
+      background-color: #fff8c5;
+      border: 1px solid #eed888;
+      border-radius: 6px;
+      padding: 8px;
+      margin-bottom: 15px;
+      font-size: 12px;
+      line-height: 1.4;
+    }
+    .notice strong {
+      color: #735c0f;
+    }
+  </style>
+</head>
+<body>
+  <h2>GitHub日本語説明ツール</h2>
+  <div id="api-key-section" class="api-key-section">
+    <div class="notice">
+      <strong>⚠️ 注意事項：</strong><br>
+      1. 入力されたAPIキーはブラウザに保存され、次回以降の利用時に自動的に使用されます。<br>
+      2. APIキーは他人と共有しないでください。<br>
+      3. APIキーの取得は <a href="https://makersuite.google.com/app/apikey" target="_blank">Google AI Studio</a> から行えます。
+    </div>
+    <label for="gemini-key">Gemini APIキー:</label>
+    <input type="password" id="gemini-key" placeholder="APIキーを入力してください">
+    <div id="key-error" class="error">APIキーを入力してください</div>
+    <button id="save-key">APIキーを保存</button>
+  </div>
+  <div id="main-section" class="hidden">
+    <p>このページのリポジトリ内容を日本語で解説します</p>
+    <button id="translate">解説を表示</button>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>
