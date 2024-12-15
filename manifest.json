@@ -6,7 +6,8 @@
   "permissions": [
     "activeTab",
     "scripting",
-    "storage"
+    "storage",
+    "management"
   ],
   "host_permissions": [
     "<all_urls>"
@@ -19,5 +20,14 @@
       "matches": ["<all_urls>"],
       "js": ["src/content.js"]
     }
-  ]
+  ],
+  "icons": {
+    "16": "icon16.png",
+    "32": "icon32.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
+  },
+  "background": {
+    "service_worker": "src/background.js"
+  }
 }

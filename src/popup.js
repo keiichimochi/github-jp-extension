@@ -178,24 +178,34 @@ function analyzePage(apiKey) {
     .jp-page-analysis::-webkit-scrollbar-thumb:hover {
       background: #539bf5;
     }
+    .jp-close-button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      border: none;
+      background: none;
+      color: #768390;
+      font-size: 16px;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: all 0.2s ease;
+    }
+    .jp-close-button:hover {
+      background-color: #2d333b;
+      color: #539bf5;
+    }
   `;
   document.head.appendChild(styles);
 
   // 閉じるボタンを追加
   const closeButton = document.createElement('button');
-  closeButton.innerHTML = '✕';
+  closeButton.className = 'jp-close-button';
+  closeButton.innerHTML = '❌';
   closeButton.style.position = 'absolute';
   closeButton.style.top = '10px';
   closeButton.style.right = '10px';
-  closeButton.style.border = 'none';
-  closeButton.style.background = 'none';
-  closeButton.style.color = '#768390';
-  closeButton.style.fontSize = '16px';
-  closeButton.style.cursor = 'pointer';
-  closeButton.style.padding = '5px';
-  closeButton.style.lineHeight = '1';
-  closeButton.onmouseover = () => closeButton.style.color = '#539bf5';
-  closeButton.onmouseout = () => closeButton.style.color = '#768390';
   closeButton.onclick = () => {
     infoDiv.remove();
     styles.remove();
@@ -211,10 +221,7 @@ function analyzePage(apiKey) {
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
         <h3 style="color: #539bf5; margin: 0;">🎯 ページの解説</h3>
         <button class="copy-button" style="padding: 8px 16px; background-color: #347d39; color: #ffffff; border: none; border-radius: 6px; cursor: pointer; font-size: 12px;">解説をコピー</button>
-        <button style="border: none; background: none; color: #768390; font-size: 16px; cursor: pointer; padding: 5px; line-height: 1;" 
-                onmouseover="this.style.color='#539bf5'" 
-                onmouseout="this.style.color='#768390'"
-                onclick="this.parentElement.parentElement.remove(); document.querySelector('style.jp-page-analysis-style')?.remove()">✕</button>
+        <button class="jp-close-button" style="position: static;">❌</button>
       </div>
       <div style="white-space: pre-wrap; color: #adbac7;" class="analysis-content">${analysis}</div>
     `;
@@ -240,5 +247,12 @@ function analyzePage(apiKey) {
     copyButton.addEventListener('mouseout', () => {
       copyButton.style.backgroundColor = '#347d39';
     });
+
+    // 閉じるボタンのイベントリスナーを追加
+    const newCloseButton = infoDiv.querySelector('.jp-close-button');
+    newCloseButton.onclick = () => {
+      infoDiv.remove();
+      styles.remove();
+    };
   });
 }
