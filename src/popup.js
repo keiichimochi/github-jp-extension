@@ -151,12 +151,35 @@ function analyzePage(apiKey) {
   infoDiv.style.maxHeight = '80vh';
   infoDiv.style.overflowY = 'auto';
   infoDiv.style.padding = '20px';
-  infoDiv.style.backgroundColor = '#f6f8fa';
-  infoDiv.style.border = '1px solid #d0d7de';
+  infoDiv.style.backgroundColor = '#1c2128';
+  infoDiv.style.color = '#adbac7';
+  infoDiv.style.border = '1px solid #444c56';
   infoDiv.style.borderRadius = '6px';
-  infoDiv.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
+  infoDiv.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.2)';
   infoDiv.style.zIndex = '9999';
-  infoDiv.innerHTML = '<h3>🔄 解説を生成中...</h3>';
+  infoDiv.style.fontSize = '14px';
+  infoDiv.style.lineHeight = '1.6';
+  infoDiv.innerHTML = '<h3 style="color: #539bf5; margin: 0 0 15px 0;">🔄 解説を生成中...</h3>';
+
+  // スタイルを定義
+  const styles = document.createElement('style');
+  styles.textContent = `
+    .jp-page-analysis::-webkit-scrollbar {
+      width: 8px;
+    }
+    .jp-page-analysis::-webkit-scrollbar-track {
+      background: #2d333b;
+      border-radius: 4px;
+    }
+    .jp-page-analysis::-webkit-scrollbar-thumb {
+      background: #444c56;
+      border-radius: 4px;
+    }
+    .jp-page-analysis::-webkit-scrollbar-thumb:hover {
+      background: #539bf5;
+    }
+  `;
+  document.head.appendChild(styles);
 
   // 閉じるボタンを追加
   const closeButton = document.createElement('button');
@@ -166,9 +189,17 @@ function analyzePage(apiKey) {
   closeButton.style.right = '10px';
   closeButton.style.border = 'none';
   closeButton.style.background = 'none';
+  closeButton.style.color = '#768390';
   closeButton.style.fontSize = '16px';
   closeButton.style.cursor = 'pointer';
-  closeButton.onclick = () => infoDiv.remove();
+  closeButton.style.padding = '5px';
+  closeButton.style.lineHeight = '1';
+  closeButton.onmouseover = () => closeButton.style.color = '#539bf5';
+  closeButton.onmouseout = () => closeButton.style.color = '#768390';
+  closeButton.onclick = () => {
+    infoDiv.remove();
+    styles.remove();
+  };
   infoDiv.appendChild(closeButton);
 
   // ページに要素を挿入
@@ -177,12 +208,15 @@ function analyzePage(apiKey) {
   // 解説を生成して表示
   getGeminiAnalysis().then(analysis => {
     infoDiv.innerHTML = `
-      <div style="display: flex; justify-content: space-between; align-items: center;">
-        <h3>🎯 ページの解説</h3>
-        <button class="copy-button" style="padding: 8px 16px; background-color: #2ea44f; color: white; border: none; border-radius: 6px; cursor: pointer;">解説をコピー</button>
-        <button style="border: none; background: none; font-size: 16px; cursor: pointer;" onclick="this.parentElement.parentElement.remove()">✕</button>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+        <h3 style="color: #539bf5; margin: 0;">🎯 ページの解説</h3>
+        <button class="copy-button" style="padding: 8px 16px; background-color: #347d39; color: #ffffff; border: none; border-radius: 6px; cursor: pointer; font-size: 12px;">解説をコピー</button>
+        <button style="border: none; background: none; color: #768390; font-size: 16px; cursor: pointer; padding: 5px; line-height: 1;" 
+                onmouseover="this.style.color='#539bf5'" 
+                onmouseout="this.style.color='#768390'"
+                onclick="this.parentElement.parentElement.remove(); document.querySelector('style.jp-page-analysis-style')?.remove()">✕</button>
       </div>
-      <div style="white-space: pre-wrap;" class="analysis-content">${analysis}</div>
+      <div style="white-space: pre-wrap; color: #adbac7;" class="analysis-content">${analysis}</div>
     `;
 
     // コピーボタンのイベントリスナーを追加
@@ -197,6 +231,14 @@ function analyzePage(apiKey) {
       }).catch(err => {
         console.error('コピーに失敗しました:', err);
       });
+    });
+
+    // コピーボタンのホバーエフェクト
+    copyButton.addEventListener('mouseover', () => {
+      copyButton.style.backgroundColor = '#46954a';
+    });
+    copyButton.addEventListener('mouseout', () => {
+      copyButton.style.backgroundColor = '#347d39';
     });
   });
 }
