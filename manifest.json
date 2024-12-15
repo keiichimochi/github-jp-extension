@@ -1,23 +1,22 @@
 {
   "manifest_version": 3,
-  "name": "GitHub日本語説明ツール",
+  "name": "ウェブページ日本語説明ツール",
   "version": "1.0.0",
-  "description": "GitHubのリポジトリの内容を日本語で解説します",
+  "description": "ウェブページの内容を日本語で解説します",
   "permissions": [
     "activeTab",
     "scripting",
     "storage"
   ],
   "host_permissions": [
-    "https://github.com/*",
-    "https://generativelanguage.googleapis.com/*"
+    "<all_urls>"
   ],
   "action": {
     "default_popup": "src/popup.html"
   },
   "content_scripts": [
     {
-      "matches": ["https://github.com/*"],
+      "matches": ["<all_urls>"],
       "js": ["src/content.js"]
     }
   ]

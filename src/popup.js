@@ -36,7 +36,7 @@ document.getElementById('save-key').addEventListener('click', async () => {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   chrome.scripting.executeScript({
     target: { tabId: tab.id },
-    function: analyzeRepository,
+    function: analyzePage,
     args: [apiKey]
   });
 });
@@ -54,44 +54,63 @@ document.getElementById('translate').addEventListener('click', async () => {
   
   chrome.scripting.executeScript({
     target: { tabId: tab.id },
-    function: analyzeRepository,
+    function: analyzePage,
     args: [geminiApiKey]
   });
 });
 
-function analyzeRepository(apiKey) {
+function analyzePage(apiKey) {
   // 既存の解説を削除
-  const existingInfo = document.querySelector('.github-repo-analysis');
+  const existingInfo = document.querySelector('.jp-page-analysis');
   if (existingInfo) {
     existingInfo.remove();
   }
 
-  // リポジトリの情報を取得
-  const repoTitle = document.querySelector('strong[itemprop="name"] a')?.innerText;
-  const description = document.querySelector('.f4.my-3')?.innerText;
-  const readmeContent = document.querySelector('#readme')?.innerText;
-  const topics = Array.from(document.querySelectorAll('a[data-octo-click="topic_click"]')).map(topic => topic.innerText);
-  const languages = Array.from(document.querySelectorAll('.d-inline span[itemprop="programmingLanguage"]')).map(lang => lang.innerText);
+  // ページの情報を取得
+  const pageTitle = document.title;
+  const metaDescription = document.querySelector('meta[name="description"]')?.content || '';
+  const h1Text = Array.from(document.querySelectorAll('h1')).map(h1 => h1.innerText).join('\n');
+  
+  // メインコンテンツを取得
+  const mainContent = (() => {
+    const article = document.querySelector('article');
+    if (article) return article.innerText;
+    
+    const main = document.querySelector('main');
+    if (main) return main.innerText;
+    
+    const mainClass = document.querySelector('.main');
+    if (mainClass) return mainClass.innerText;
+    
+    const mainId = document.querySelector('#main');
+    if (mainId) return mainId.innerText;
+    
+    const mainRole = document.querySelector('[role="main"]');
+    if (mainRole) return mainRole.innerText;
+    
+    // メインコンテンツが特定できない場合は、visible textを取得
+    const bodyText = document.body.innerText;
+    return bodyText.substring(0, 5000); // 長すぎる場合は制限
+  })();
 
   // Gemini APIにリクエストを送信する関数
-  async function getGeminiAnalysis(content) {
+  async function getGeminiAnalysis() {
     const endpoint = 'https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent';
     const prompt = `
-      以下のGitHubリポジトリの情報を日本語で分かりやすく解説してください：
+      以下のウェブページの内容を日本語で分かりやすく解説してください：
       
-      リポジトリ名: ${repoTitle}
-      説明: ${description}
-      プログラミング言語: ${languages.join(', ')}
-      トピック: ${topics.join(', ')}
+      ページタイトル: ${pageTitle}
+      説明: ${metaDescription}
+      見出し: ${h1Text}
       
-      README内容:
-      ${readmeContent}
+      ページ内容:
+      ${mainContent}
       
       解説は以下の項目を含めてください：
-      1. プロジェクトの概要と目的
-      2. 主な機能や特徴
-      3. 使用している技術やフレームワーク
-      4. プロジェクトの価値や有用性
+      1. ページの概要と目的
+      2. 主なトピックや内容
+      3. 重要なポイントや特徴
+      4. このページの価値や有用性
     `;
 
     try {
@@ -122,49 +141,62 @@ function analyzeRepository(apiKey) {
     }
   }
 
-  // コピー機能の実装
-  function copyToClipboard(text) {
-    navigator.clipboard.writeText(text).then(() => {
-      const copyButton = document.querySelector('.copy-button');
-      copyButton.textContent = 'コピーしました！';
-      setTimeout(() => {
-        copyButton.textContent = '解説をコピー';
-      }, 2000);
-    }).catch(err => {
-      console.error('コピーに失敗しました:', err);
-    });
-  }
-
   // 解説を表示する要素を作成
   const infoDiv = document.createElement('div');
-  infoDiv.className = 'github-repo-analysis';
+  infoDiv.className = 'jp-page-analysis';
+  infoDiv.style.position = 'fixed';
+  infoDiv.style.top = '20px';
+  infoDiv.style.right = '20px';
+  infoDiv.style.width = '400px';
+  infoDiv.style.maxHeight = '80vh';
+  infoDiv.style.overflowY = 'auto';
   infoDiv.style.padding = '20px';
   infoDiv.style.backgroundColor = '#f6f8fa';
-  infoDiv.style.margin = '20px';
+  infoDiv.style.border = '1px solid #d0d7de';
   infoDiv.style.borderRadius = '6px';
+  infoDiv.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
+  infoDiv.style.zIndex = '9999';
   infoDiv.innerHTML = '<h3>🔄 解説を生成中...</h3>';
 
-  // ページに要素を挿入
-  const container = document.querySelector('.repository-content');
-  if (container) {
-    container.insertBefore(infoDiv, container.firstChild);
-    
-    // 解説を生成して表示
-    getGeminiAnalysis().then(analysis => {
-      infoDiv.innerHTML = `
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-          <h3>🎯 リポジトリの解説</h3>
-          <button class="copy-button" style="padding: 8px 16px; background-color: #2ea44f; color: white; border: none; border-radius: 6px; cursor: pointer;">解説をコピー</button>
-        </div>
-        <div style="white-space: pre-wrap;" class="analysis-content">${analysis}</div>
-      `;
+  // 閉じるボタンを追加
+  const closeButton = document.createElement('button');
+  closeButton.innerHTML = '✕';
+  closeButton.style.position = 'absolute';
+  closeButton.style.top = '10px';
+  closeButton.style.right = '10px';
+  closeButton.style.border = 'none';
+  closeButton.style.background = 'none';
+  closeButton.style.fontSize = '16px';
+  closeButton.style.cursor = 'pointer';
+  closeButton.onclick = () => infoDiv.remove();
+  infoDiv.appendChild(closeButton);
 
-      // コピーボタンのイベントリスナーを追加
-      const copyButton = infoDiv.querySelector('.copy-button');
-      copyButton.addEventListener('click', () => {
-        const analysisText = infoDiv.querySelector('.analysis-content').textContent;
-        copyToClipboard(analysisText);
+  // ページに要素を挿入
+  document.body.appendChild(infoDiv);
+  
+  // 解説を生成して表示
+  getGeminiAnalysis().then(analysis => {
+    infoDiv.innerHTML = `
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h3>🎯 ページの解説</h3>
+        <button class="copy-button" style="padding: 8px 16px; background-color: #2ea44f; color: white; border: none; border-radius: 6px; cursor: pointer;">解説をコピー</button>
+        <button style="border: none; background: none; font-size: 16px; cursor: pointer;" onclick="this.parentElement.parentElement.remove()">✕</button>
+      </div>
+      <div style="white-space: pre-wrap;" class="analysis-content">${analysis}</div>
+    `;
+
+    // コピーボタンのイベントリスナーを追加
+    const copyButton = infoDiv.querySelector('.copy-button');
+    copyButton.addEventListener('click', () => {
+      const analysisText = infoDiv.querySelector('.analysis-content').textContent;
+      navigator.clipboard.writeText(analysisText).then(() => {
+        copyButton.textContent = 'コピーしました！';
+        setTimeout(() => {
+          copyButton.textContent = '解説をコピー';
+        }, 2000);
+      }).catch(err => {
+        console.error('コピーに失敗しました:', err);
       });
     });
-  }
+  });
 }

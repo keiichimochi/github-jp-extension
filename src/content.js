@@ -1,4 +1,4 @@
-// GitHubページの監視
+// ページの監視
 const observer = new MutationObserver((mutations) => {
   mutations.forEach((mutation) => {
     if (mutation.type === 'childList') {
@@ -16,11 +16,14 @@ observer.observe(document.body, {
 
 function highlightKeyElements() {
   // 重要な要素にスタイルを適用
-  const keyElements = document.querySelectorAll('.BorderGrid-cell');
+  const keyElements = document.querySelectorAll('article, main, .main, #main, [role="main"]');
   keyElements.forEach(element => {
-    element.style.backgroundColor = '#f6f8fa';
-    element.style.padding = '10px';
-    element.style.margin = '5px 0';
-    element.style.borderRadius = '6px';
+    if (!element.classList.contains('jp-extension-highlighted')) {
+      element.classList.add('jp-extension-highlighted');
+      element.style.backgroundColor = '#f6f8fa';
+      element.style.padding = '10px';
+      element.style.margin = '5px 0';
+      element.style.borderRadius = '6px';
+    }
   });
 }
